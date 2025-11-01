@@ -1,6 +1,7 @@
 // src/main.jsx
 import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SplashScreen from './pages/SplashScreen';
 import HomePage from './pages/HomePage';
 import MakananPage from './pages/MakananPage';
@@ -14,113 +15,26 @@ import MobileNavbar from './components/navbar/MobileNavbar';
 import './index.css'
 import PWABadge from './PWABadge';
 
-function AppRoot() {
-  const [showSplash, setShowSplash] = useState(true);
+const qc = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 minutes
+      cacheTime: 1000 * 60 * 10, // 10 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+function AppWrapper() {
+  const [mode, setMode] = useState('list');
   const [currentPage, setCurrentPage] = useState('home');
-  const [mode, setMode] = useState('list'); // 'list', 'detail', 'create', 'edit'
-  const [selectedRecipeId, setSelectedRecipeId] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('makanan');
-  const [editingRecipeId, setEditingRecipeId] = useState(null);
 
-  const handleSplashComplete = () => {
-    setShowSplash(false);
-  };
+  const handleNavigation = (page) => setCurrentPage(page);
+  const handleCreateRecipe = () => setMode('create');
+  const handleBackToList = () => setMode('list');
 
-  const handleNavigation = (page) => {
-    setCurrentPage(page);
-    setMode('list');
-    setSelectedRecipeId(null);
-    setEditingRecipeId(null);
-  };
-
-  const handleCreateRecipe = () => {
-    setMode('create');
-  };
-
-  const handleRecipeClick = (recipeId, category) => {
-    setSelectedRecipeId(recipeId);
-    setSelectedCategory(category || currentPage);
-    setMode('detail');
-  };
-
-  const handleEditRecipe = (recipeId) => {
-    console.log('🔧 Edit button clicked! Recipe ID:', recipeId);
-    setEditingRecipeId(recipeId);
-    setMode('edit');
-    console.log('✅ Mode changed to: edit');
-  };
-
-  const handleBack = () => {
-    setMode('list');
-    setSelectedRecipeId(null);
-    setEditingRecipeId(null);
-  };
-
-  const handleCreateSuccess = (newRecipe) => {
-    alert('Resep berhasil dibuat!');
-    setMode('list');
-    // Optionally navigate to the new recipe's category
-    if (newRecipe && newRecipe.category) {
-      setCurrentPage(newRecipe.category);
-    }
-  };
-
-  const handleEditSuccess = (updatedRecipe) => {
-    alert('Resep berhasil diperbarui!');
-    setMode('list');
-  };
-
-  const renderCurrentPage = () => {
-    // Show Create Recipe Page
-    if (mode === 'create') {
-      return (
-        <CreateRecipePage
-          onBack={handleBack}
-          onSuccess={handleCreateSuccess}
-        />
-      );
-    }
-
-    // Show Edit Recipe Page
-    if (mode === 'edit') {
-      return (
-        <EditRecipePage
-          recipeId={editingRecipeId}
-          onBack={handleBack}
-          onSuccess={handleEditSuccess}
-        />
-      );
-    }
-
-    // Show Recipe Detail
-    if (mode === 'detail') {
-      return (
-        <RecipeDetail
-          recipeId={selectedRecipeId}
-          category={selectedCategory}
-          onBack={handleBack}
-          onEdit={handleEditRecipe}
-        />
-      );
-    }
-
-    // Show List Pages
-    switch (currentPage) {
-      case 'home':
-        return <HomePage onRecipeClick={handleRecipeClick} onNavigate={handleNavigation} />;
-      case 'makanan':
-        return <MakananPage onRecipeClick={handleRecipeClick} />;
-      case 'minuman':
-        return <MinumanPage onRecipeClick={handleRecipeClick} />;
-      case 'profile':
-        return <ProfilePage onRecipeClick={handleRecipeClick} />;
-      default:
-        return <HomePage onRecipeClick={handleRecipeClick} onNavigate={handleNavigation} />;
-    }
-  };
-
-  if (showSplash) {
-    return <SplashScreen onComplete={handleSplashComplete} />;
+  if (mode === 'splash') {
+    return <SplashScreen onComplete={() => setMode('list')} />;
   }
 
   return (
@@ -140,10 +54,13 @@ function AppRoot() {
           />
         </>
       )}
-      
-      {/* Main Content */}
-      <main className="min-h-screen">
-        {renderCurrentPage()}
+
+      <main className="p-4">
+        {mode === 'list' && currentPage === 'home' && <HomePage />}
+        {mode === 'list' && currentPage === 'makanan' && <MakananPage />}
+        {mode === 'list' && currentPage === 'minuman' && <MinumanPage />}
+        {mode === 'list' && currentPage === 'profile' && <ProfilePage userId={null} />}
+        {mode === 'create' && <CreateRecipePage onBack={handleBackToList} />}
       </main>
 
       <PWABadge />
@@ -153,7 +70,8 @@ function AppRoot() {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AppRoot />
-  </StrictMode>,
-)
-
+    <QueryClientProvider client={qc}>
+      <AppWrapper />
+    </QueryClientProvider>
+  </StrictMode>
+);
