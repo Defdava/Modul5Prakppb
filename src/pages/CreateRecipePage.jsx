@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Upload, X, Plus, Image as ImageIcon, Loader, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import recipeService from '../services/recipeService';
 import uploadService from '../services/uploadService';
-import { saveDraft, loadDraft, deleteDraft, hasDraft, getDraftTimestamp, formatDraftTime } from '../utils/draftStorage';
+import { saveDraft, loadDraft, deleteDraft, hasDraft, getDraftTimestamp, formatDraftTime } from '../Utils/draftStorage';
 import ConfirmModal from '../components/modals/ConfirmModal';
 
 export default function CreateRecipePage({ onBack, onSuccess }) {
