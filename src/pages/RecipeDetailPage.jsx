@@ -4,7 +4,7 @@ import { useRecipe } from '../hooks/useRecipes';
 import { useReviews, useCreateReview } from '../hooks/useReviews';
 import { useIsFavorited } from '../hooks/useFavorites';
 import { getUserIdentifier } from '../hooks/useFavorites';
-import { formatDate, getDifficultyColor, getStarRating } from '../utils/helpers';
+import { formatDate, getDifficultyColor, getStarRating } from '../Utils/helpers';
 import { Heart, Clock, Users, ChefHat } from 'lucide-react';
 
 export default function RecipeDetailPage({ recipeId, onBack }) {
